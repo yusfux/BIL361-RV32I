@@ -28,7 +28,7 @@ module islemci(
 
 
     reg [31:0] yazmac_obegi [7:0];       //yalnizca 8 adet 32 bitlik register
-    reg [31:0] veri_bellek [127:0];     //128 satirli 32 bitlik veri bellegi
+    reg [31:0] veri_bellek  [127:0];     //128 satirli 32 bitlik veri bellegi
 
     //neden gelen "buyruk" da wire olmasina ragmen bit secimi yapilacak sekilde kullanilamiyior?
     wire [31:0] buyruk_w = buyruk;
@@ -67,17 +67,17 @@ module islemci(
     end
 
     always @(*) begin
-        ps_next = ps;
+        ps_next   = ps;
         mem_write = 0;
 
         case (op_code)
             7'b0110111: begin   //LUI
-                rd_d = imm_u << 12;
+                rd_d    = imm_u;
                 ps_next = ps + 4;
             end
 
             7'b0010111: begin   //AUIPC
-                rd_d = ps + imm_u << 12; 
+                rd_d    = ps + imm_u; 
                 ps_next = ps + 4;
             end
 
@@ -87,7 +87,8 @@ module islemci(
             end
 
             7'b1100111: begin   //JALR
-
+                rd_d    = ps + 4;
+                ps_next = (rs1_d + imm_i) & 32'hFFFFFFFE;
             end
 
             7'b1100011: begin   //BEQ & BNE & BLT
@@ -99,15 +100,15 @@ module islemci(
                     3'b001: begin   //BNE
                         ps_next = rs1_d != rs2_d ? ps + imm_b : ps + 4;
                     end
-                    //TODO: we need signed comparison
                     3'b100: begin   //BLT
+                        ps_next = $signed(rs1_d) < $signed(rs2_d) ? ps + imm_b : ps + 4; 
                     end
                 endcase
                 //--------------------------------------------------------
             end
 
             7'b0000011: begin   //LW
-                rd_d = veri_bellek[(rs1_d + imm_i) >> 2];
+                rd_d    = veri_bellek[(rs1_d + imm_i) >> 2];
                 ps_next = ps + 4;
             end
 
@@ -115,36 +116,35 @@ module islemci(
                 mem_write   = 1'b1;
                 mem_address = rs1_d + imm_s;
                 mem_d       = rs2_d;
-                ps_next = ps + 4;
+                ps_next     = ps + 4;
             end
 
             7'b0010011: begin   //ADDI
-                rd_d = rs1_d + imm_i;
+                rd_d    = rs1_d + imm_i;
                 ps_next = ps + 4;
-                $display("rs1_d: %d, imm_i: %d, rd_d: %d", rs1_d, imm_i, rd_d);
             end
 
             7'b0110011: begin   //ADD & SUB & OR & AND & XOR
                 //--------------------------------------------------------
                 case ({funct_7, funct_3})
                     10'b0000000000: begin   //ADD
-                        rd_d = rs1_d + rs2_d;
+                        rd_d    = rs1_d + rs2_d;
                         ps_next = ps + 4;
                     end
                     10'b0100000000: begin   //SUB
-                        rd_d = rs1_d - rs2_d;
+                        rd_d    = rs1_d - rs2_d;
                         ps_next = ps + 4;
                     end
                     10'b0000000110: begin   //OR
-                        rd_d = rs1_d | rs2_d;
+                        rd_d    = rs1_d | rs2_d;
                         ps_next = ps + 4;
                     end
                     10'b0000000111: begin   //AND
-                        rd_d = rs1_d & rs2_d;
+                        rd_d    = rs1_d & rs2_d;
                         ps_next = ps + 4;
                     end
                     10'b0000000100: begin   //XOR
-                        rd_d = rs1_d ^ rs2_d;
+                        rd_d    = rs1_d ^ rs2_d;
                         ps_next = ps + 4;
                     end
                 endcase

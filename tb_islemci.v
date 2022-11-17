@@ -20,14 +20,14 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 //`define ARITHMETIC
-`define BRANCH
+//`define BRANCH
+`define DEBUG
 
 module tb_islemci(
     );
 
     reg [31:0] buyruk_bellek [127:0];
     initial begin
-        //NEED TO INCLUDE BLT AND JALR
         `ifdef ARITHMETIC
             buyruk_bellek[0] = 32'h01430313;    //ADDI x6, x6, 20   x6 = 20;
             buyruk_bellek[1] = 32'hff628293;    //ADDI x5, x5, 10   x5 = -10;
@@ -50,7 +50,18 @@ module tb_islemci(
             buyruk_bellek[7] = 32'hfe009ee3;    //BNE  x1, x0, -4   jump to previous ADDI
 
             buyruk_bellek[8] = 32'hfffff3b7;    //LUI  x7, -1       x7 = -4096;
-            buyruk_bellek[9] = 32'hfffd8317;    //AUIPC x6, -40     x6 = 0;
+            buyruk_bellek[9] = 32'hfffd8317;    //AUIPC x6, -40     x6 = -163804;
+            buyruk_bellek[10] = 32'hff608093;   //ADDI x1, x1, -10  x1 = 0;
+            buyruk_bellek[11] = 32'h00008067;   //JALR x0, x1, 0    x0 = program_counter + 4; jump to x1 + 0 (0)
+        `elsif DEBUG
+            buyruk_bellek[0] = 32'h01430313;    //ADDI x6, x6, 20    x6 = 20;
+            buyruk_bellek[1] = 32'hff628293;    //ADDI x5, x5, -10   x5 = -10;
+            buyruk_bellek[2] = 32'h006283b3;    //ADD  x7, x5, x6    x7 = 10;
+            buyruk_bellek[3] = 32'h406280b3;    //SUB  x1, x5, x6    x1 = -30;
+            buyruk_bellek[4] = 32'h40530133;    //SUB  x2, x6, x5    x2 = 30;
+            buyruk_bellek[5] = 32'h00508093;    //ADDI x1, x1, 5     x1 = -25;
+            buyruk_bellek[6] = 32'hfe50cee3;    //BLT  x1, x5, -4    jump to previous ADDI until x1 >= x2
+            buyruk_bellek[7] = 32'h00508093;    //ADDI x1, x1, 5     x1 = -5;
         `endif
     end
 
@@ -60,7 +71,7 @@ module tb_islemci(
     islemci uut (
         .clk(clk),
         .rst(rst),
-        .buyruk(buyruk_bellek[ps/4]),
+        .buyruk(buyruk_bellek[ps >> 2]),
         .ps(ps)
     );
 
