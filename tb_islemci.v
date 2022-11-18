@@ -22,7 +22,7 @@
 //`define ARITHMETIC
 //`define BRANCH
 `define DEBUG
-
+//define BONUS
 module tb_islemci(
     );
 
@@ -62,16 +62,58 @@ module tb_islemci(
             buyruk_bellek[5] = 32'h00508093;    //ADDI x1, x1, 5     x1 = -25;
             buyruk_bellek[6] = 32'hfe50cee3;    //BLT  x1, x5, -4    jump to previous ADDI until x1 >= x2
             buyruk_bellek[7] = 32'h00508093;    //ADDI x1, x1, 5     x1 = -5;
+            buyruk_bellek[8] = 32'h01428013;    //ADDI x0, x5, 20    x0 shoudln't change
+        `elsif BONUS
+            uut.veri_bellek[0] = 32'd2 ;
+            uut.veri_bellek[1] = 32'd4 ;
+            uut.veri_bellek[2] = 32'd6 ;
+            uut.veri_bellek[3] = 32'd8 ;
+            uut.veri_bellek[4] = 32'd10;
+            uut.veri_bellek[5] = 32'd20;
+            uut.veri_bellek[6] = 32'd30;
+            uut.veri_bellek[7] = 32'd40;
+            uut.veri_bellek[8] = 32'd50;
+            uut.veri_bellek[9] = 32'd60;
+        
+            buyruk_bellek[0] = 32'h00002083;    //LW x1, 0, x0
+            buyruk_bellek[1] = 32'h00402103;    //LW x2, 4, x0
+            buyruk_bellek[2] = 32'h00802183;    //LW x3, 8, x0
+            buyruk_bellek[3] = 32'h00c02203;    //LW x4, 12, x0
+            buyruk_bellek[4] = 32'h01002283;    //LW x5, 16, x0
+            buyruk_bellek[5] = 32'h00208333;    //ADD x6, x1, x2
+            buyruk_bellek[6] = 32'h00330333;    //ADD x6, x6, x3
+            buyruk_bellek[7] = 32'h00430333;    //ADD x6, x6, x4
+            buyruk_bellek[8] = 32'h00530333;    //ADD x6, x6, x5
+
+            buyruk_bellek[9]  = 32'h01402083;    //LW x1, 20, x0
+            buyruk_bellek[10] = 32'h01802103;    //LW x2, 24, x0
+            buyruk_bellek[11] = 32'h01c02183;    //LW x3, 28, x0
+            buyruk_bellek[12] = 32'h02002203;    //LW x4, 22, x0
+            buyruk_bellek[13] = 32'h02402283;    //LW x5, 36, x0
+            buyruk_bellek[14] = 32'h002083b3;    //ADD x7, x1, x2
+            buyruk_bellek[15] = 32'h003383b3;    //ADD x7, x7, x3
+            buyruk_bellek[16] = 32'h004383b3;    //ADD x7, x7, x4
+            buyruk_bellek[17] = 32'h005383b3;    //ADD x7, x7, x5
+
+            buyruk_bellek[18] = 32'h406380b3;    //SUB x1, x7, x6
+            buyruk_bellek[19] = 32'h1e102e23;    //SW x1, 508, x0
         `endif
     end
+    
 
+    
     wire [31:0]ps;
     reg clk, rst;
+    
+    reg [31:0] bellek_r;
+    always @(posedge clk) begin
+        bellek_r <= buyruk_bellek[ps >> 2];
+    end
 
     islemci uut (
         .clk(clk),
         .rst(rst),
-        .buyruk(buyruk_bellek[ps >> 2]),
+        .buyruk(bellek_r),
         .ps(ps)
     );
 
